@@ -43,43 +43,61 @@ The following template shows a basic way to create a key vault. Some values are 
         "description": "Specifies the name of the key vault."
       }
     },
-    "skuName": {
+    "objectId": {
       "type": "string",
-      "defaultValue": "Standard",
-      "allowedValues": [
-        "Standard",
-        "Premium"
+      "metadata": {
+        "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+      }
+    },
+    "keysPermissions": {
+      "type": "array",
+      "defaultValue": [
+        "list"
       ],
       "metadata": {
-        "description": "Specifies whether the key vault is a standard vault or a premium vault."
+        "description": "Specifies the permissions to keys in the vault. Valid values are: all, encrypt, decrypt, wrapKey, unwrapKey, sign, verify, get, list, create, update, import, delete, backup, restore, recover, and purge."
+      }
+    },
+    "secretsPermissions": {
+      "type": "array",
+      "defaultValue": [
+        "list"
+      ],
+      "metadata": {
+        "description": "Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge."
+      }
+    },
+    "certificatePermissions": {
+      "type": "array",
+      "defaultValue": [
+        "list"
+      ],
+      "metadata": {
+        "description": "Specifies the permissions to certificates in the vault. Valid values are: all,  create, delete, update, deleteissuers, get, getissuers, import, list, listissuers, managecontacts, manageissuers,  recover, backup, restore, setissuers, and purge."
       }
     }
-   },
+  },
   "resources": [
     {
-      "type": "Microsoft.KeyVault/vaults",
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "name": "[concat(parameters('keyVaultName'), '/add')]",
       "apiVersion": "2019-09-01",
-      "name": "[parameters('keyVaultName')]",
-      "location": "[resourceGroup().location]",
       "properties": {
-        "enabledForDeployment": "false",
-        "enabledForDiskEncryption": "false",
-        "enabledForTemplateDeployment": "false",
-        "tenantId": "[subscription().tenantId]",
-        "accessPolicies": [],
-        "sku": {
-          "name": "[parameters('skuName')]",
-          "family": "A"
-        },
-        "networkAcls": {
-          "defaultAction": "Allow",
-          "bypass": "AzureServices"
-        }
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('objectId')]",
+            "permissions": {
+              "keys": "[parameters('keysPermissions')]",
+              "secrets": "[parameters('secretsPermissions')]",
+              "certificates": "[parameters('certificatePermissions')]"
+            }
+          }
+        ]
       }
     }
   ]
 }
-
 ```
 
 For more about Key Vault template settings, see [Key Vault ARM template reference](/azure/templates/microsoft.keyvault/vaults).
